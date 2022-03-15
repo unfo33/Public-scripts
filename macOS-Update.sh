@@ -1,11 +1,6 @@
 #!/bin/zsh
 
-#  nudge like script using dialog to prompt for an OS upgrade
-# 
-#  Created by Bart Reardon on 15/9/21.
-#
-
-requiredOSVer="12.4"
+requiredOSVer="12.3"
 infolink="https://support.apple.com/en-au/HT201222"
 persistant=0 # set this to 1 and the popup will persist until the update is performed
 
