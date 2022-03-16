@@ -43,7 +43,7 @@ message="*A friendly reminder from the VentureWell Information Systems Team to k
     \n
     \nYou can also always update on your own from the Mac Manage application on your computer."
 infotext="More Information"
-icon="/Users/tbartlett/Downloads/VentureWell_logo_mark.png"
+icon="/Library/Application Support/Dialog/VentureWell_logo_mark.png"
 button1text="Open Software Update"
 buttona1ction="open -b com.apple.systempreferences /System/Library/PreferencePanes/SoftwareUpdate.prefPane"
 button2text="Defer"
