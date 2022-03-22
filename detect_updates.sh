@@ -293,14 +293,17 @@ if [[ ${#updateavailable} -gt 0 ]]; then
         listitems="$listitems --listitem \"$app\""
     done
 
-    dialogCMD="$dialogApp --title \"Application Update Available\" \
-    --message \"*A friendly reminder from the VentureWell Information Systems Team to keep your software up to date.*
-    \nClick **Update Now** to close and update the below app
-    \nClick **Defer** to be reminded again later
+    title="Application Update Available"
+    message="*A friendly reminder from the VentureWell Information Systems Team to keep your software up to date.*
+    \n- Click **Update Now** to close and update the below app
+    \n- Click **Defer** to be reminded again later
+    \n- Use the **Mac Manage app** to update at your convenience
     \n
-    \nYou can also always update on your own from the Mac Manage application on your computer.
-    \n
-    \n**You have the following updates available:**\" \
+    \n**You have the following updates available:**
+    "
+
+    dialogCMD="$dialogApp --title \"$title\" \
+    --message \"$message\" \
     --titlefont \"size=30\" \
     --icon \"$icon\" \ \
     --button1text \"Update Now\" \
