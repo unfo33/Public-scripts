@@ -1,9 +1,26 @@
 #!/bin/zsh
 
-requiredOSVer="12.3"
+# variables 
+requiredOSVer="12.4"
+requiredDate=1650628800
+currentDate=$(date +%s)
+daysLeft=$(( (requiredDate-currentDate)/86400 ))
+echo "$daysLeft"
+OSVer=$(sw_vers | grep "ProductVersion" | awk '{print $NF}')
+dialog="/usr/local/bin/dialog"
 infolink="https://support.apple.com/en-au/HT201222"
-persistant=0 # set this to 1 and the popup will persist until the update is performed
+title="Operating System Update Available"
+message="### Operating System Update Available
+\n Days Remaining to Update: $daysLeft
+\n *To begin the update, click on **Update Device** and follow the provided steps* 
+\n *You can also use the [Mac Manage App](https://docs.google.com/document/d/1oWuT7Tgsv-DHFNmivSc_Ibz61vtKKkRvqQoYmQsrKzI/edit?usp=sharing) to update at your convenience*"
+infotext="More Information"
+icon="/Library/Application Support/Dialog/VentureWell_logo_mark.png"
+button1text="Update Now"
+button1action="open -b com.apple.systempreferences /System/Library/PreferencePanes/SoftwareUpdate.prefPane"
+button2text="Defer"
 
+# check if dialog is installed and install if not
 function dialogCheck(){
   # Get the URL of the latest PKG From the Dialog GitHub repo
   dialogURL=$(curl --silent --fail "https://api.github.com/repos/bartreardon/swiftDialog/releases/latest" | awk -F '"' "/browser_download_url/ && /pkg\"/ { print \$4; exit }")
@@ -30,23 +47,53 @@ function dialogCheck(){
   fi
 }
 
+# creates typical dialog notifications
+function runDialog () {
+    ${dialog} -p -d \
+    		--title none \
+            --icon "${icon}" \
+            --message "${message}" \
+            --infobuttontext "${infotext}" \
+            --infobuttonaction "${infolink}" \
+            --button1text "${button1text}" \
+            --button2text "${button2text}" \
+            --centericon \
+            --alignment center \
+            -o
+    
+    processExitCode $?
+}
+
+# creates final dialog notifications
+function finalDialog () {
+    ${dialog} -p -d \
+    		--title none \
+            --icon "${icon}" \
+            --message "${message}" \
+            --infobuttontext "${infotext}" \
+            --infobuttonaction "${infolink}" \
+            --button1text "${button1text}" \
+            --centericon \
+            --alignment center \
+            --ontop
+    
+    processExitCode $?
+}
+
+processExitCode () {
+    exitcode=$1
+    if [[ $exitcode == 0 ]]; then
+        updateselected=1
+        open -b com.apple.systempreferences /System/Library/PreferencePanes/SoftwareUpdate.prefPane
+    elif [[ $exitcode == 2 ]]; then
+       echo "user deferred"
+       exit 1
+  	elif [[ $exitcode == 3 ]]; then
+  		updateselected=1
+    fi
+}
+
 dialogCheck
-
-OSVer=$(sw_vers | grep "ProductVersion" | awk '{print $NF}')
-dialog="/usr/local/bin/dialog"
-
-
-title="Operating System Update Available"
-titlefont="size=30"
-message="*A friendly reminder from the VentureWell Information Systems Team to keep your software up to date.*
-    \nClick **Open Software Update** to be directed to the built in OS Update pane to perform the update or Click **Defer** to be reminded again later
-    \n
-    \nYou can also always update on your own from the Mac Manage application on your computer."
-infotext="More Information"
-icon="/Library/Application Support/Dialog/VentureWell_logo_mark.png"
-button1text="Open Software Update"
-buttona1ction="open -b com.apple.systempreferences /System/Library/PreferencePanes/SoftwareUpdate.prefPane"
-button2text="Defer"
 
 # check the current version against the required version and exit if we're already at or exceded
 autoload is-at-least
@@ -56,52 +103,19 @@ if [[ $? -eq 0 ]]; then
 	exit 0
 fi
 
-runDialog () {
-    ${dialog} -p -d \
-    		--title "${title}" \
-            --titlefont ${titlefont} \
-            --icon "${icon}" \
-            --listitem "Current version of macOS: ${OSVer}" \
-            --listitem "Required version of macOS: ${requiredOSVer}" \
-            --message "${message}" \
-            --infobuttontext "${infotext}" \
-            --infobuttonaction "${infolink}" \
-            --button1text "${button1text}" \
-            --button2text "${button2text}" \
-            --width 800 \
-            --height 400 \
-            -o
-    
-    processExitCode $?
-}
-
 updateselected=0
 
-processExitCode () {
-    exitcode=$1
-    if [[ $exitcode == 0 ]]; then
-        updateselected=1
-        open -b com.apple.systempreferences /System/Library/PreferencePanes/SoftwareUpdate.prefPane
-    elif [[ $exitcode == 2 ]]; then
-        currentUser=$(echo "show State:/Users/ConsoleUser" | scutil | awk '/Name :/ { print $3 }' )
-        uid=$(id -u "$currentUser")
-        echo "User deferred"
-        exit 0
-  	elif [[ $exitcode == 3 ]]; then
-  		updateselected=1
-    fi
-}
+if [ $daysLeft -eq 0 ]; then
+    persistant=1
+else persistant=0
+fi
 
-
-# the main loop
 while [[ ${persistant} -eq 1 ]] || [[ ${updateselected} -eq 0 ]]
 do
-    if [[ -e "${dialog}" ]]; then
-        runDialog
-    else
-        # well something is up if dialog is missing - force an exit
-        updateselected=1
-    fi
+    if [ $daysLeft -eq 0 ]; then
+        finalDialog
+    else runDialog
+fi
 done
 
 exit 0
