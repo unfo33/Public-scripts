@@ -297,7 +297,7 @@ if [[ ${#updateavailable} -gt 0 ]]; then
     message="*A friendly reminder from the VentureWell Information Systems Team to keep your software up to date.*
     \n- Click **Update Now** to close and update the below app
     \n- Click **Defer** to be reminded again later
-    \n- Use the **Mac Manage app** to update at your convenience
+    \n- Use the [Mac Manage App](https://docs.google.com/document/d/1oWuT7Tgsv-DHFNmivSc_Ibz61vtKKkRvqQoYmQsrKzI/edit?usp=sharing) to update at your convenience
     \n
     \n**You have the following updates available:**
     "
