@@ -50,7 +50,7 @@ function dialogCheck(){
 # creates typical dialog notifications
 function runDialog () {
     ${dialog} -p -d \
-    		--title none \
+    		--title "none" \
             --icon "${icon}" \
             --message "${message}" \
             --infobuttontext "${infotext}" \
@@ -67,7 +67,7 @@ function runDialog () {
 # creates final dialog notifications
 function finalDialog () {
     ${dialog} -p -d \
-    		--title none \
+    		--title "none" \
             --icon "${icon}" \
             --message "${message}" \
             --infobuttontext "${infotext}" \
