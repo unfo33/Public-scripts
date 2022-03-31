@@ -1,8 +1,9 @@
 #!/bin/zsh
 
 # variables 
-requiredOSVer="12.3"
-requiredDate=1650628800
+requiredOSVer="12.3.1"
+# use  date -v+30d +%s to get
+requiredDate=1651352715
 currentDate=$(date +%s)
 daysLeft=$(( (requiredDate-currentDate)/86400 ))
 echo "$daysLeft"
