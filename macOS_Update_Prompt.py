@@ -10,6 +10,7 @@ import subprocess
 
 # add major OS logic
 # optimize code to save line
+# add logic to ensure update is actually available
 
 # open software update pane
 cmd = "open -b com.apple.systempreferences /System/Library/PreferencePanes/SoftwareUpdate.prefPane"
@@ -89,7 +90,9 @@ final_content_dict = {
     "ontop": 1,
     "moveable": 1,
 }
-if current_OS != macOS_Latest:
+if current_OS == macOS_Latest:
+    print("On Latest Version")
+else:
     if days_Left <= 23:
         while days_Left == 0:
             run_dialog(final_content_dict)
@@ -97,5 +100,3 @@ if current_OS != macOS_Latest:
             run_dialog(content_dict)
     else:
         print("still in grace period")
-else:
-    print("On latest version.")
