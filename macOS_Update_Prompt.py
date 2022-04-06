@@ -89,11 +89,13 @@ final_content_dict = {
     "ontop": 1,
     "moveable": 1,
 }
-
-if days_Left <= 29:
-    while days_Left == 0:
-        run_dialog(final_content_dict)
+if current_OS != macOS_Latest:
+    if days_Left <= 23:
+        while days_Left == 0:
+            run_dialog(final_content_dict)
+        else:
+            run_dialog(content_dict)
     else:
-        run_dialog(content_dict)
+        print("still in grace period")
 else:
-    print("still in grace period")
+    print("On latest version.")

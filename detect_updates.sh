@@ -164,9 +164,12 @@ dialogCheck
 installomatorCheck
 
 # get icon
-curl -o "/Library/Application Support/Dialog/VentureWell_logo_mark.png" https://raw.githubusercontent.com/unfo33/venturewell/main/VentureWell_logo_mark.png
 icon="/Library/Application Support/Dialog/VentureWell_logo_mark.png"
-
+if [ -f $icon ]; then
+    echo "icon exists"
+else
+    curl -o "/Library/Application Support/Dialog/VentureWell_logo_mark.png" https://raw.githubusercontent.com/unfo33/venturewell/main/VentureWell_logo_mark.png
+fi
 #  Go through apps to see if they need update and if blocking processes
 for label in "${myapps[@]}"; do
     echo "Label is $label"
