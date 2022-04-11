@@ -98,8 +98,7 @@ else:
                     del content_dict["button2text"]
                 run_dialog(content_dict)
                 run += 1
-            else:
-                run_dialog(content_dict)
+            run_dialog(content_dict)
         else:
             print("still in grace period")
     else:
