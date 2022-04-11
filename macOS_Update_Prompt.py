@@ -98,7 +98,8 @@ else:
                     content_dict.update(ontop)
                     content_dict.update(message)
                     del content_dict["button2text"]
-                run_dialog(content_dict)
+                exit = run_dialog(content_dict)
+                print (exit)
                 run += 1
             run_dialog(content_dict)
         else:
