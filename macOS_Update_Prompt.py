@@ -89,13 +89,13 @@ else:
     if update_Check():
         if days_Left <= 23:
             message = {"message": f"## Operating System Update Required\n\nYour Update Path: **{current_OS}** → **{macOS_Latest}**\n\nmacOS **{macOS_Latest}** was released on **{posting_Date_STR}**. It is a **{Update}** update and will require around **{time}** minutes downtime.\n\nDays Remaining to Update: **{days_Left}**\n\n*To begin the update, click on **Update Now** and follow the provided steps.*\n*You can also use the [Mac Manage App](https://docs.google.com/document/d/1oWuT7Tgsv-DHFNmivSc_Ibz61vtKKkRvqQoYmQsrKzI/edit?usp=sharing) to update at your convenience*."}
-            del content_dict["button2text"]
             while days_Left == 0:
                 run = 0
                 if run == 0:
                     ontop = {"ontop": 1}
                     content_dict.update(ontop)
                     content_dict.update(message)
+                    del content_dict["button2text"]
                 run_dialog(content_dict)
                 run += 1
             else:
