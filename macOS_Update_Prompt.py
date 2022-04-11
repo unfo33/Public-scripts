@@ -83,6 +83,8 @@ content_dict = {
 
 icon_Check()
 
+days_Left = 0
+
 if current_OS == macOS_Latest:
     print("On Latest Version")
 else:
