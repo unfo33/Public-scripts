@@ -17,14 +17,14 @@ dialogApp = "/Library/Application Support/Dialog/Dialog.app/Contents/MacOS/Dialo
 dialogPath = "/Library/Application Support/Dialog/Dialog.app"
 dialog_command_file="/var/tmp/dialog.log"
 infolink = ""
-dep_nag = "https://github.com/unfo33/Public-scripts/blob/main/dep-nag.png?raw=true"
-dep_allow = "https://github.com/unfo33/Public-scripts/blob/main/dep-approve.png?raw=true"
+dep_nag_icon = "https://github.com/unfo33/venturewell-image/blob/main/dep-nag.png?raw=true"
+dep_allow = "https://github.com/unfo33/venturewell-image/blob/main/dep-approve.png?raw=true"
 content_base = {
         "button1text": "Send Notification",
         "button2text": "Defer",
         "centericon": 1,
         "alignment": "center",
-        "icon": "https://github.com/unfo33/Public-scripts/blob/main/dm_update.jpeg?raw=true",
+        "icon": "https://github.com/unfo33/venturewell-image/blob/main/dm_update.jpeg?raw=true",
         "infobuttonaction": infolink,
         "infobuttontext": "More Info",
         "message": "## Device Management Update Needed\n\nVentureWell is migrating Device Management tools which requires manual user approval - don't worry it will only take a second!\n\nPlease click **Send Notification** below to kick off the process.\n\nIf you have any questions or concerns please feel free to reach out in Slack or email support@venturewell.org",
@@ -84,7 +84,7 @@ def identity_check():
     #jamf = "ACCF01EA-A4FD-4758-B333-E3834BFF33EE"
     """Check for valid MDM identity will return"""
     cmd = ["/usr/bin/security", "find-identity", "-v"]
-    output = run_cmd(cmd)[0].decode("utf-8")
+    output = run_cmd(cmd)[0]
     if "AddigyMDM Identity" in output:
         write_log("Addigy MDM detected")
         return False
@@ -99,8 +99,10 @@ def content_step1():
     content_base.update({"button1text": "Send Notification"})
     content_base.update({"button2text": "Defer"})
     content_base.update({"message": message})
-    content_base.update({"icon": dep_nag})
+    content_base.update({"icon": dep_nag_icon})
     content_base.update({"iconsize": "500"})
+    exit = run_dialog(content_base)
+    return exit.returncode
     
 
 def content_Complete():
@@ -109,10 +111,11 @@ def content_Complete():
     content_base.pop("button2text", None)
     content_base.update({"message": message})
     content_base.update({"icon": "SF=checkmark.circle.fill,weight=bold,colour1=#00ff44,colour2=#075c1e"})
+    run_dialog(content_base)
 
 def write_log(text):
     """logger for depnotify"""
-    NSLog("[depnotify] " + text)
+    NSLog("[mdm-switch] " + text)
 
 def content_Defer():
     message = "## Device update has been deferred or failed.\n\nWe will remind you again soon!"
@@ -120,6 +123,8 @@ def content_Defer():
     content_base.pop("button2text", None)
     content_base.update({"message": message})
     content_base.update({"icon": "SF=person.crop.circle.badge.moon.fill,weight=bold"})
+    write_log("user deferred")
+    run_dialog(content_base)
 
 # check if DEP enabled
 def is_dep_enabled():
@@ -155,21 +160,43 @@ def run_dialog(dialog):
 
 def run_cmd(cmd):
     """Run the cmd"""
-    run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     output, err = run.communicate()
     if err:
         write_log(err.decode("utf-8"))
     return output, err
 
-def make_admin(user):
-    makeadmin = ["dseditgroup", "-o", "edit", "-d", user, "-t", "user", "admin"]
-    run_cmd(makeadmin)
+def manage_Admin(status=False, remove=False):
+    user_id = get_logged_in_user()
+    checkadmin = ["dseditgroup", "-o", "checkmember", "-m", user_id[0], "admin"]
+    write_log("checking admin")
+    admin = run_cmd(checkadmin)
+    if str(admin).find("yes") != -1:
+        initialadmin=True
+        write_log("Already admin")
+        if remove == True and status == False:
+            write_log("removing admin")
+            removeadmin = ["dseditgroup", "-o", "edit", "-d", user_id[0], "-t", "user", "admin"]
+            run_cmd(removeadmin)
+    else:
+        initialadmin=False
+        write_log("promoting to admin")
+        makeadmin = ["dseditgroup", "-o", "edit", "-a", user_id[0], "-t", "user", "admin"]
+        run_cmd(makeadmin)
+    return initialadmin, user_id[1]
+
+def dep_nag(uid):
+     depnag = ["/bin/launchctl", "asuser", str(uid), "/usr/bin/profiles", "renew", "-type", "enrollment"]
+     run_cmd(depnag)
+     write_log("Send dep nag command")
 
 def main():
-    # Ensure Swift-Dialog is isntalled
+    # Ensure Swift-Dialog is installed
+    write_log("swiftDialog check")
     check = swiftDialog_Check()
     if check[0] == False:
-        swiftDialog_Install(check[1], check[2])
+         write_log("swiftDialog install")
+         swiftDialog_Install(check[1], check[2])
     
     # Check if we are in Jamf
     if identity_check():
@@ -181,43 +208,38 @@ def main():
     if result.returncode == 2:
         write_log("user deferred")
         content_Defer()
-        run_dialog(content_base)
         sys.exit(0)
+    elif result.returncode == 0:
+        status, uid = manage_Admin()
+        dep_nag(uid)
+    else:
+         write_log(f"Dialog unexpectedly closed error code: {exit.returncode}")    
 
-    # get user, make admin, and send them DEP nag command
-    user_id = get_logged_in_user()
-    makeadmin = ["dseditgroup", "-o", "edit", "-a", user_id[0], "-t", "user", "admin"]
-    removeadmin = ["dseditgroup", "-o", "edit", "-d", user_id[0], "-t", "user", "admin"]
-    depnag = ["/bin/launchctl", "asuser", str(user_id[1]), "/usr/bin/profiles", "renew", "-type", "enrollment"]
-    run_cmd(makeadmin)
-    run_cmd(depnag)
-    
-    # send dialog step 2
-    content_step1()
-    exit = run_dialog(content_base)
-    if exit.returncode == 2:
-        write_log("user deferred")
-        content_Defer()
-        run_dialog(content_base)
-        sys.exit(0)
-    
     # leave dialog and script running until we determine they are enrolled in Jamf.
     mdm = identity_check()
     i = 0
     while mdm == False and i < 5:
-        result = run_dialog(content_base)
-        run_cmd(depnag)
+        result = content_step1()
+        if result == 2:
+            manage_Admin(status, True)
+            content_Defer()
+            sys.exit(0)
+        elif result == 0:
+            dep_nag(uid)
+        else:
+            write_log(f"Dialog unexpectedly closed error code: {exit.returncode}")
         time.sleep(1) 
         identity_check()
         i+=1
-    if mdm == True:
-        run_cmd(removeadmin)
+
+    if mdm:
+        if status:
+            manage_Admin(status, True)
         content_Complete()
-        run_dialog(content_base)
     else:
-        run_cmd(removeadmin)
+        if status:
+            manage_Admin(status, True)
         content_Defer()
-        run_dialog(content_base)
 
 main()
     
