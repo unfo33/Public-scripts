@@ -18,16 +18,12 @@ dialogPath = "/Library/Application Support/Dialog/Dialog.app"
 dialog_command_file="/var/tmp/dialog.log"
 infolink = ""
 dep_nag_icon = "https://github.com/unfo33/venturewell-image/blob/main/dep-nag.png?raw=true"
-dep_allow = "https://github.com/unfo33/venturewell-image/blob/main/dep-approve.png?raw=true"
 content_base = {
         "button1text": "Send Notification",
         "button2text": "Defer",
-        "centericon": 1,
         "alignment": "center",
-        "icon": "https://github.com/unfo33/venturewell-image/blob/main/dm_update.jpeg?raw=true",
-        "infobuttonaction": infolink,
-        "infobuttontext": "More Info",
-        "message": "## Device Management Update Needed\n\nVentureWell is migrating Device Management tools which requires manual user approval - don't worry it will only take a second!\n\nPlease click **Send Notification** below to kick off the process.\n\nIf you have any questions or concerns please feel free to reach out in Slack or email support@venturewell.org",
+        "bannerimage": "https://github.com/unfo33/venturewell-image/blob/main/dmun.jpeg?raw=true",
+        "message": "VentureWell is migrating Device Management tools which requires manual user approval - don't worry it will only take a second!\n\nPlease click **Send Notification** below to kick off the process.\n\nIf you have any questions or concerns please feel free to reach out in Slack or email support@venturewell.org",
         "messagefont": "size=16",
         "title": "none",
         "moveable": 1,
@@ -96,9 +92,10 @@ def identity_check():
 
 def content_step1():
     message = "## Notification has been sent\n\nIt is located in the Notification Center in the top right corner of your screen.\n\nClick on the notification and select **Allow** to finish device management setup.\n\nOnce completed you will be able to close this window."
-    content_base.update({"button1text": "Send Notification"})
+    content_base.update({"button1text": "Done / Try Again"})
     content_base.update({"button2text": "Defer"})
     content_base.update({"message": message})
+    content_base.pop("bannerimage", None)
     content_base.update({"icon": dep_nag_icon})
     content_base.update({"iconsize": "500"})
     exit = run_dialog(content_base)
@@ -109,8 +106,9 @@ def content_Complete():
     message = "## Device has been updated, thanks!\n\nIf you have any questions or concerns please feel free to reach out in Slack or email support@venturewell.org"
     content_base.update({"button1text": "Close"})
     content_base.pop("button2text", None)
+    content_base.pop("icon", None)
+    content_base.update({"bannerimage": "https://github.com/unfo33/venturewell-image/blob/main/dmun.jpeg?raw=true"})
     content_base.update({"message": message})
-    content_base.update({"icon": "SF=checkmark.circle.fill,weight=bold,colour1=#00ff44,colour2=#075c1e"})
     run_dialog(content_base)
 
 def write_log(text):
@@ -121,8 +119,9 @@ def content_Defer():
     message = "## Device update has been deferred or failed.\n\nWe will remind you again soon!"
     content_base.update({"button1text": "Close"})
     content_base.pop("button2text", None)
+    content_base.pop("icon", None)
     content_base.update({"message": message})
-    content_base.update({"icon": "SF=person.crop.circle.badge.moon.fill,weight=bold"})
+    content_base.update({"bannerimage": "https://github.com/unfo33/venturewell-image/blob/main/dmun.jpeg?raw=true"})
     write_log("user deferred")
     run_dialog(content_base)
 
@@ -163,7 +162,7 @@ def run_cmd(cmd):
     run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     output, err = run.communicate()
     if err:
-        write_log(err.decode("utf-8"))
+        write_log(err)
     return output, err
 
 def manage_Admin(status=False, remove=False):
