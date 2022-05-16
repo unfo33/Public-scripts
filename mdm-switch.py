@@ -237,7 +237,7 @@ def main():
         else:
             write_log(f"Dialog unexpectedly closed error code: {exit.returncode}")
         time.sleep(1) 
-        jamf_check
+        jamf_check()
         i+=1
 
     if mdm:
