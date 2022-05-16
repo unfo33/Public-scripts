@@ -10,8 +10,6 @@ from Foundation import NSLog
 import requests
 import tempfile
 
-#todo
-
 ############################################## Initial variables and  JSON ######################################
 dialogApp = "/Library/Application Support/Dialog/Dialog.app/Contents/MacOS/Dialog"
 dialogPath = "/Library/Application Support/Dialog/Dialog.app"
@@ -27,9 +25,13 @@ content_base = {
         "messagefont": "size=16",
         "title": "none",
         "moveable": 1,
+        "ontop": 1
 }
 
 ################################################ Functions #####################################################
+if os.path.exists(dialog_command_file):
+    os.remove(dialog_command_file)
+
 def swiftDialog_Install(url, name):
     # download Install to temp directory
     new = requests.get(url, stream=True)
@@ -81,6 +83,7 @@ def identity_check():
     """Check for valid MDM identity will return"""
     cmd = ["/usr/bin/security", "find-identity", "-v"]
     output = run_cmd(cmd)[0]
+    write_log(output)
     if "AddigyMDM Identity" in output:
         write_log("Addigy MDM detected")
         return False
@@ -189,18 +192,24 @@ def dep_nag(uid):
      run_cmd(depnag)
      write_log("Send dep nag command")
 
+def jamf_check():
+    if os.path.exists("/usr/local/jamf"):
+        write_log("found Jamf, exiting...")
+        return True
+    else:
+        return False
+
 def main():
+    # Check if we are in Jamf
+    if jamf_check():
+        sys.exit(0)
+
     # Ensure Swift-Dialog is installed
     write_log("swiftDialog check")
     check = swiftDialog_Check()
     if check[0] == False:
          write_log("swiftDialog install")
          swiftDialog_Install(check[1], check[2])
-    
-    # Check if we are in Jamf
-    if identity_check():
-        write_log("Found Jamf, exiting.")
-        sys.exit(0)
     
     # send initial dialog
     result = run_dialog(content_base)
@@ -215,7 +224,7 @@ def main():
          write_log(f"Dialog unexpectedly closed error code: {exit.returncode}")    
 
     # leave dialog and script running until we determine they are enrolled in Jamf.
-    mdm = identity_check()
+    mdm = jamf_check()
     i = 0
     while mdm == False and i < 5:
         result = content_step1()
@@ -228,7 +237,7 @@ def main():
         else:
             write_log(f"Dialog unexpectedly closed error code: {exit.returncode}")
         time.sleep(1) 
-        identity_check()
+        jamf_check
         i+=1
 
     if mdm:
