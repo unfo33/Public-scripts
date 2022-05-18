@@ -101,6 +101,7 @@ def content_step1():
     content_base.pop("bannerimage", None)
     content_base.update({"icon": dep_nag_icon})
     content_base.update({"iconsize": "500"})
+    content_base.update({"ontop": 0})
     exit = run_dialog(content_base)
     return exit.returncode
     
@@ -234,7 +235,7 @@ def main():
         elif result == 0:
             dep_nag(uid)
         else:
-            write_log(f"Dialog unexpectedly closed error code: {exit.returncode}")
+            write_log(f"Dialog unexpectedly closed error code: {result}")
         time.sleep(1) 
         i+=1
 
