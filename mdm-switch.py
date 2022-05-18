@@ -95,8 +95,8 @@ def identity_check():
 
 def content_step1():
     message = "## Notification has been sent\n\nIt is located in the Notification Center in the top right corner of your screen.\n\nClick on the notification and select **Allow** to finish device management setup.\n\nOnce completed you will be able to close this window."
-    content_base.update({"button1text": "Done / Try Again"})
-    content_base.update({"button2text": "Defer"})
+    content_base.update({"button1text": "Done"})
+    content_base.update({"button2text": "Try Again"})
     content_base.update({"message": message})
     content_base.pop("bannerimage", None)
     content_base.update({"icon": dep_nag_icon})
@@ -222,18 +222,16 @@ def main():
         status, uid = manage_Admin()
         dep_nag(uid)
     else:
-         write_log(f"Dialog unexpectedly closed error code: {exit.returncode}")    
+         write_log(f"Dialog unexpectedly closed error code: {result.returncode}")    
 
     # leave dialog and script running until we determine they are enrolled in Jamf.
     i = 0
     while jamf_check() == False and i < 5:
         result = content_step1()
         if result == 2:
-            manage_Admin(status, True)
-            content_Defer()
-            sys.exit(0)
-        elif result == 0:
             dep_nag(uid)
+        elif result == 0:
+            pass
         else:
             write_log(f"Dialog unexpectedly closed error code: {result}")
         time.sleep(1) 
