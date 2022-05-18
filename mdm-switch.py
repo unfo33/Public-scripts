@@ -100,6 +100,7 @@ def content_step1():
     content_base.update({"message": message})
     content_base.pop("bannerimage", None)
     content_base.update({"icon": dep_nag_icon})
+    content_base.update({"centericon": 1})
     content_base.update({"iconsize": "500"})
     content_base.update({"ontop": 0})
     exit = run_dialog(content_base)
@@ -158,6 +159,7 @@ def get_logged_in_user():
 def run_dialog(dialog):
     """Runs the SwiftDialog app and returns the exit code"""
     jsonString = json.dumps(dialog)
+    write_log("running dialog")
     result = subprocess.run([dialogApp, "--jsonstring", jsonString])
     return result
 
@@ -169,24 +171,24 @@ def run_cmd(cmd):
         write_log(err)
     return output, err
 
-def manage_Admin(status=False, remove=False):
+def manage_Admin(init_admin=False, remove=False):
     user_id = get_logged_in_user()
     checkadmin = ["dseditgroup", "-o", "checkmember", "-m", user_id[0], "admin"]
     write_log("checking admin")
     admin = run_cmd(checkadmin)
     if str(admin).find("yes") != -1:
-        initialadmin=True
+        removeadmin=False
         write_log("Already admin")
-        if remove == True and status == False:
+        if init_admin == True and remove == True:
             write_log("removing admin")
             removeadmin = ["dseditgroup", "-o", "edit", "-d", user_id[0], "-t", "user", "admin"]
             run_cmd(removeadmin)
     else:
-        initialadmin=False
+        removeadmin=True
         write_log("promoting to admin")
         makeadmin = ["dseditgroup", "-o", "edit", "-a", user_id[0], "-t", "user", "admin"]
         run_cmd(makeadmin)
-    return initialadmin, user_id[1]
+    return removeadmin, user_id[1]
 
 def dep_nag(uid):
      depnag = ["/bin/launchctl", "asuser", str(uid), "/usr/bin/profiles", "renew", "-type", "enrollment"]
@@ -202,8 +204,8 @@ def jamf_check():
 
 def main():
     # Check if we are in Jamf
-    if jamf_check():
-        sys.exit(0)
+    # if jamf_check():
+    #     sys.exit(0)
 
     # Ensure Swift-Dialog is installed
     write_log("swiftDialog check")
@@ -219,7 +221,7 @@ def main():
         content_Defer()
         sys.exit(0)
     elif result.returncode == 0:
-        status, uid = manage_Admin()
+        removeadmin, uid = manage_Admin()
         dep_nag(uid)
     else:
          write_log(f"Dialog unexpectedly closed error code: {result.returncode}")    
@@ -236,14 +238,10 @@ def main():
             write_log(f"Dialog unexpectedly closed error code: {result}")
         time.sleep(1) 
         i+=1
-
+    manage_Admin(removeadmin, True)
     if jamf_check():
-        if status:
-            manage_Admin(status, True)
         content_Complete()
     else:
-        if status:
-            manage_Admin(status, True)
         content_Defer()
 
 main()
