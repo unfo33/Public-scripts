@@ -224,9 +224,8 @@ def main():
          write_log(f"Dialog unexpectedly closed error code: {exit.returncode}")    
 
     # leave dialog and script running until we determine they are enrolled in Jamf.
-    mdm = jamf_check()
     i = 0
-    while mdm == False and i < 5:
+    while jamf_check() == False and i < 5:
         result = content_step1()
         if result == 2:
             manage_Admin(status, True)
@@ -237,10 +236,9 @@ def main():
         else:
             write_log(f"Dialog unexpectedly closed error code: {exit.returncode}")
         time.sleep(1) 
-        jamf_check()
         i+=1
 
-    if mdm:
+    if jamf_check():
         if status:
             manage_Admin(status, True)
         content_Complete()
