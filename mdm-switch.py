@@ -203,9 +203,9 @@ def jamf_check():
         return False
 
 def main():
-    # Check if we are in Jamf
-    # if jamf_check():
-    #     sys.exit(0)
+    #Check if we are in Jamf
+    if jamf_check():
+        sys.exit(0)
 
     # Ensure Swift-Dialog is installed
     write_log("swiftDialog check")
