@@ -94,7 +94,7 @@ def identity_check():
         return False
 
 def content_step1():
-    message = "## Notification has been sent\n\nIt is located in the Notification Center in the top right corner of your screen.\n\nClick on the notification and select **Allow** to finish device management setup.\n\nOnce completed you will be able to close this window."
+    message = "## Notification has been sent\n\nIt is located in the Notification Center in the top right corner of your screen.\n\nClick anyhwere on the notification and a new window will open, select **Allow** and sign-in to finish device management setup.\n\nOnce completed you will be able to close this window."
     content_base.update({"button1text": "Done"})
     content_base.update({"button2text": "Try Again"})
     content_base.update({"message": message})
